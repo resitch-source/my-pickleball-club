@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Member Portal — ClubHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<style>
+.member-hero {
+  background: linear-gradient(135deg, var(--brand) 0%, #1a3a2a 100%);
+  padding: 1.5rem;
+  color: white;
+}
+.member-welcome { font-family: 'DM Serif Display', serif; font-size: 1.6rem; }
+.member-sub { font-size: 0.85rem; opacity: 0.7; margin-top: 0.2rem; }
+.member-chips { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.member-chip { background: rgba(255,255,255,0.15); padding: 0.3rem 0.8rem; border-radius: 20px; font-size: 0.78rem; font-weight: 500; }
+.member-chip.gold { background: var(--gold); color: #1a1a18; }
+.event-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+.event-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+}
+.event-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.event-card-header { padding: 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.75rem; }
+.event-sport-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+.event-card-body { padding: 1rem; }
+.event-card-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.4rem; }
+.event-card-meta { font-size: 0.8rem; color: var(--muted); display: flex; flex-direction: column; gap: 0.2rem; }
+.event-card-footer { padding: 0.75rem 1rem; border-top: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+.event-price { font-weight: 700; font-size: 1rem; color: var(--brand-mid); }
+.spots-badge { font-size: 0.75rem; color: var(--muted); }
+.spots-badge.low { color: #dc3545; font-weight: 600; }
+.booking-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem; }
+.booking-icon { width: 48px; height: 48px; border-radius: 12px; background: rgba(82,183,136,0.1); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+.booking-info { flex: 1; }
+.booking-name { font-weight: 600; font-size: 0.9rem; }
+.booking-meta { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+.tab-nav { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; overflow-x: auto; }
+.tab-link { padding: 0.75rem 1.25rem; border: none; background: none; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; font-weight: 500; cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -2px; white-space: nowrap; transition: all 0.15s; }
+.tab-link.active { color: var(--brand-mid); border-bottom-color: var(--brand-mid); }
+.tab-pane { display: none; }
+.tab-pane.active { display: block; }
+.sport-filters { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.25rem; }
+.sport-filter-btn { padding: 0.4rem 0.9rem; border-radius: 20px; border: 1px solid var(--border); background: var(--card-bg); font-size: 0.82rem; font-weight: 500; cursor: pointer; color: var(--muted); transition: all 0.15s; }
+.sport-filter-btn.active { background: var(--brand-mid); color: white; border-color: var(--brand-mid); }
+.profile-form { max-width: 520px; }
+.announce-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; margin-bottom: 0.75rem; border-left: 4px solid var(--accent); }
+.announce-card.high { border-left-color: #dc3545; }
+.announce-title { font-weight: 600; font-size: 0.9rem; }
+.announce-msg { font-size: 0.83rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.5; }
+.announce-date { font-size: 0.72rem; color: var(--muted); margin-top: 0.5rem; }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏟️</div>
+      <div>
+        <div class="sidebar-logo-text">ClubHub</div>
+        <div class="sidebar-logo-sub">Member Portal</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <button class="nav-item active" onclick="showTab('home')"><span class="nav-icon">🏠</span> Home</button>
+      <button class="nav-item" onclick="showTab('events')"><span class="nav-icon">📅</span> Browse Events</button>
+      <button class="nav-item" onclick="showTab('my-bookings')"><span class="nav-icon">📋</span> My Bookings</button>
+      <button class="nav-item" onclick="showTab('announcements')"><span class="nav-icon">📢</span> Announcements</button>
+      <div class="nav-section-label">Account</div>
+      <button class="nav-item" onclick="showTab('profile')"><span class="nav-icon">👤</span> My Profile</button>
+      <button class="nav-item" onclick="logout()"><span class="nav-icon">🚪</span> Sign Out</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar" id="member-avatar">M</div>
+        <div>
+          <div class="user-name" id="member-name">Member</div>
+          <div class="user-role" id="member-tier-badge">Premium</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="top-bar">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div class="top-bar-title" id="page-title">Home</div>
+      </div>
+      <div class="top-bar-actions">
+        <button class="btn btn-primary btn-sm" onclick="showTab('events')">📅 Book Event</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- HOME TAB -->
+      <div class="tab-pane active" id="tab-home">
+        <div class="member-hero" style="border-radius:var(--radius);margin-bottom:1.5rem">
+          <div class="member-welcome">Welcome back, <span id="hero-name">Member</span> 👋</div>
+          <div class="member-sub">Your club dashboard — stay active, stay connected.</div>
+          <div class="member-chips">
+            <span class="member-chip gold" id="hero-tier">Premium</span>
+            <span class="member-chip" id="hero-bookings">0 upcoming</span>
+            <span class="member-chip">Member since 2024</span>
+          </div>
+        </div>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-label">My Bookings</div><div class="stat-value" id="ms-bookings">0</div><div class="stat-change">Total events booked</div></div>
+          <div class="stat-card"><div class="stat-label">Upcoming</div><div class="stat-value" id="ms-upcoming">0</div><div class="stat-change">Events coming up</div></div>
+          <div class="stat-card"><div class="stat-label">Open Events</div><div class="stat-value" id="ms-open">0</div><div class="stat-change">Available to book</div></div>
+          <div class="stat-card"><div class="stat-label">Membership</div><div class="stat-value" id="ms-tier" style="font-size:1.2rem">—</div><div class="stat-change">Current plan</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📅 Available Now</div><button class="btn btn-secondary btn-sm" onclick="showTab('events')">See All</button></div>
+          <div class="event-cards" id="home-events" style="margin-top:0.5rem"></div>
+        </div>
+      </div>
+
+      <!-- EVENTS TAB -->
+      <div class="tab-pane" id="tab-events">
+        <div class="sport-filters" id="sport-filters">
+          <button class="sport-filter-btn active" onclick="filterBySport('',this)">All Sports</button>
+        </div>
+        <div class="filter-bar" style="margin-bottom:1rem">
+          <input type="text" id="event-search" placeholder="🔍 Search events…" oninput="filterEvents()" style="padding:0.5rem 0.8rem;border:1px solid var(--border);border-radius:8px;flex:1;min-width:200px;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--text);background:var(--card-bg);outline:none">
+          <select id="event-type-filter" onchange="filterEvents()" style="padding:0.5rem 0.8rem;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.85rem;color:var(--text);background:var(--card-bg);outline:none"><option value="">All Types</option><option value="clinic">Clinic</option><option value="open_play">Open Play</option><option value="tournament">Tournament</option><option value="training">Training</option></select>
+        </div>
+        <div class="event-cards" id="events-grid"></div>
+      </div>
+
+      <!-- MY BOOKINGS TAB -->
+      <div class="tab-pane" id="tab-my-bookings">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <div class="tab-nav" style="border:none;margin:0">
+            <button class="tab-link active" onclick="filterBookingStatus('all',this)">All</button>
+            <button class="tab-link" onclick="filterBookingStatus('confirmed',this)">Confirmed</button>
+            <button class="tab-link" onclick="filterBookingStatus('waitlisted',this)">Waitlisted</button>
+          </div>
+        </div>
+        <div id="bookings-list"></div>
+      </div>
+
+      <!-- ANNOUNCEMENTS TAB -->
+      <div class="tab-pane" id="tab-announcements">
+        <div id="ann-list"></div>
+      </div>
+
+      <!-- PROFILE TAB -->
+      <div class="tab-pane" id="tab-profile">
+        <div class="card profile-form">
+          <div class="card-header"><div class="card-title">My Profile</div></div>
+          <div class="form-grid" style="margin-top:0.5rem">
+            <div class="form-group form-full"><label>Full Name</label><input type="text" id="p-name"></div>
+            <div class="form-group"><label>Email</label><input type="email" id="p-email" readonly style="opacity:0.6"></div>
+            <div class="form-group"><label>Phone</label><input type="text" id="p-phone"></div>
+            <div class="form-group"><label>Preferred Sport</label><select id="p-sport"></select></div>
+          </div>
+          <div style="margin-top:1.25rem"><button class="btn btn-primary" onclick="saveProfile()">Save Changes</button></div>
+        </div>
+        <div class="card" style="margin-top:1rem;max-width:520px">
+          <div class="card-header"><div class="card-title">Membership</div></div>
+          <div id="membership-info"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal-overlay" id="event-detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-title">Event Details</div>
+      <button class="modal-close" onclick="closeModal('event-detail-modal')">✕</button>
+    </div>
+    <div class="modal-body" id="detail-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('event-detail-modal')">Close</button>
+      <button class="btn btn-primary" id="book-btn" onclick="bookEvent()">Book Now</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script>
+let currentUser = null;
+let allEvents = [], myBookings = [], allAnnouncements = [];
+let selectedEvent = null;
+let activeSport = '';
+
+const sportEmojis = { Tennis:'🎾', Badminton:'🏸', Basketball:'🏀', Pickleball:'🏓', Volleyball:'🏐', Swimming:'🏊', Gym:'💪' };
+const sportBgs = { Tennis:'rgba(36,113,163,0.12)', Badminton:'rgba(27,122,75,0.12)', Basketball:'rgba(138,104,32,0.12)', Pickleball:'rgba(123,45,139,0.12)', Volleyball:'rgba(192,57,43,0.12)', Swimming:'rgba(46,134,193,0.12)', Gym:'rgba(97,106,107,0.12)' };
+
+window.onload = async () => {
+  currentUser = requireAuth(['member','admin','staff']);
+  if (!currentUser) return;
+
+  document.getElementById('member-name').textContent = currentUser.name;
+  document.getElementById('hero-name').textContent = currentUser.name.split(' ')[0];
+  document.getElementById('member-avatar').textContent = currentUser.name[0].toUpperCase();
+  document.getElementById('member-tier-badge').textContent = currentUser.membership || 'Guest';
+  document.getElementById('hero-tier').textContent = currentUser.membership || 'Guest';
+
+  // Populate sport select
+  const pSport = document.getElementById('p-sport');
+  CONFIG.SPORTS.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; pSport.appendChild(o); });
+
+  // Sport filter buttons
+  const filterBar = document.getElementById('sport-filters');
+  CONFIG.SPORTS.forEach(s => {
+    const btn = document.createElement('button');
+    btn.className = 'sport-filter-btn';
+    btn.textContent = (sportEmojis[s]||'🎯')+' '+s;
+    btn.onclick = () => filterBySport(s, btn);
+    filterBar.appendChild(btn);
+  });
+
+  // Load profile
+  document.getElementById('p-name').value = currentUser.name;
+  document.getElementById('p-email').value = currentUser.email;
+  document.getElementById('p-phone').value = currentUser.phone || '';
+  document.getElementById('p-sport').value = currentUser.sport || '';
+
+  await loadData();
+};
+
+async function loadData() {
+  const [evRes, bkRes, annRes] = await Promise.all([
+    API.getEvents(), API.getBookings(currentUser.id), API.getAnnouncements()
+  ]);
+  allEvents = (evRes.data || []).filter(e=>e.status!=='cancelled');
+  myBookings = bkRes.data || [];
+  allAnnouncements = annRes.data || [];
+  renderHome();
+  renderEvents();
+  renderBookings(myBookings);
+  renderAnnouncements();
+  renderProfile();
+}
+
+function renderHome() {
+  const upcoming = myBookings.filter(b=>b.status==='confirmed').length;
+  document.getElementById('ms-bookings').textContent = myBookings.length;
+  document.getElementById('ms-upcoming').textContent = upcoming;
+  document.getElementById('ms-open').textContent = allEvents.filter(e=>e.status==='open').length;
+  document.getElementById('ms-tier').textContent = currentUser.membership || 'Guest';
+  document.getElementById('hero-bookings').textContent = `${upcoming} upcoming`;
+  const open = allEvents.filter(e=>e.status==='open').slice(0,4);
+  document.getElementById('home-events').innerHTML = open.map(renderEventCard).join('');
+}
+
+function renderEventCard(e) {
+  const spots = e.capacity - e.enrolled;
+  const booked = myBookings.some(b=>b.eventId===e.id);
+  return `<div class="event-card" onclick="openEventDetail('${e.id}')">
+    <div class="event-card-header">
+      <div class="event-sport-icon" style="background:${sportBgs[e.sport]||'rgba(82,183,136,0.12)'}">${sportEmojis[e.sport]||'🎯'}</div>
+      <div>
+        <div style="font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted)">${e.sport} · ${e.type?.replace('_',' ')}</div>
+        <div class="event-card-title">${e.name}</div>
+      </div>
+    </div>
+    <div class="event-card-body">
+      <div class="event-card-meta">
+        <span>📅 ${e.date} · ${e.time}–${e.endTime}</span>
+        <span>📍 ${e.location}</span>
+        ${e.instructor?`<span>👤 ${e.instructor}</span>`:''}
+      </div>
+    </div>
+    <div class="event-card-footer">
+      <div class="event-price">${e.price===0?'Free':`₱${e.price}`}</div>
+      <div>
+        ${booked?`<span class="badge badge-success">✓ Booked</span>`
+        :e.status==='full'?`<span class="badge badge-danger">Full</span>`
+        :`<span class="spots-badge${spots<=3?' low':''}">${spots} spot${spots!==1?'s':''} left</span>`}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderEvents(filtered) {
+  const data = filtered ?? allEvents;
+  const q = document.getElementById('event-search')?.value.toLowerCase()||'';
+  const type = document.getElementById('event-type-filter')?.value||'';
+  const shown = data.filter(e =>
+    (!activeSport || e.sport===activeSport) &&
+    (!q || e.name.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)) &&
+    (!type || e.type===type)
+  );
+  document.getElementById('events-grid').innerHTML = shown.length ? shown.map(renderEventCard).join('')
+    : '<div style="color:var(--muted);text-align:center;padding:3rem;grid-column:1/-1">No events match your search.</div>';
+}
+
+function filterBySport(sport, btn) {
+  activeSport = sport;
+  document.querySelectorAll('.sport-filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderEvents();
+}
+
+function filterEvents() { renderEvents(); }
+
+function renderBookings(data) {
+  document.getElementById('bookings-list').innerHTML = data.length ? data.map(b => {
+    const ev = allEvents.find(e=>e.eventId===b.eventId) || {};
+    return `<div class="booking-item">
+      <div class="booking-icon">${sportEmojis[ev.sport]||'📋'}</div>
+      <div class="booking-info">
+        <div class="booking-name">${b.eventName}</div>
+        <div class="booking-meta">📅 ${b.date} · ${b.paid?'Paid':'Unpaid'} · ₱${b.amount}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:0.5rem">
+        <span class="badge badge-${b.status==='confirmed'?'success':b.status==='waitlisted'?'warning':'neutral'}">${b.status}</span>
+        ${b.status==='confirmed'?`<button class="btn btn-danger btn-sm" onclick="cancelBooking('${b.id}')">Cancel</button>`:''}
+      </div>
+    </div>`;
+  }).join('') : '<div style="color:var(--muted);text-align:center;padding:3rem">You have no bookings yet. <a href="#" onclick="showTab(\'events\')">Browse events →</a></div>';
+}
+
+function filterBookingStatus(status, btn) {
+  document.querySelectorAll('.tab-nav .tab-link').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderBookings(status==='all'?myBookings:myBookings.filter(b=>b.status===status));
+}
+
+function renderAnnouncements() {
+  document.getElementById('ann-list').innerHTML = allAnnouncements.length ? allAnnouncements.map(a =>
+    `<div class="announce-card ${a.priority==='high'?'high':''}">
+      <div class="announce-title">${a.priority==='high'?'🔴 ':''} ${a.title}</div>
+      <div class="announce-msg">${a.message}</div>
+      <div class="announce-date">${a.date}</div>
+    </div>`
+  ).join('') : '<div style="color:var(--muted);padding:2rem;text-align:center">No announcements</div>';
+}
+
+function renderProfile() {
+  const tiers = CONFIG.MEMBERSHIP_TIERS;
+  const current = tiers.find(t=>t.name===currentUser.membership) || tiers[0];
+  document.getElementById('membership-info').innerHTML = `
+    <div style="display:flex;align-items:center;gap:1rem;padding:0.5rem 0">
+      <div style="width:14px;height:14px;border-radius:50%;background:${current.color}"></div>
+      <div>
+        <div style="font-weight:600;font-size:1rem">${current.name}</div>
+        <div style="font-size:0.82rem;color:var(--muted)">${current.price===0?'Free membership':`₱${current.price.toLocaleString()} / month`}</div>
+      </div>
+    </div>
+    <div style="margin-top:0.75rem"><button class="btn btn-secondary btn-sm" onclick="toast('Contact admin to upgrade your membership','warning')">Upgrade Plan</button></div>`;
+}
+
+async function saveProfile() {
+  const name = document.getElementById('p-name').value.trim();
+  const phone = document.getElementById('p-phone').value.trim();
+  const sport = document.getElementById('p-sport').value;
+  if (!name) { toast('Name is required','error'); return; }
+  currentUser.name = name; currentUser.phone = phone; currentUser.sport = sport;
+  sessionStorage.setItem('clubhub_user', JSON.stringify(currentUser));
+  document.getElementById('member-name').textContent = name;
+  document.getElementById('hero-name').textContent = name.split(' ')[0];
+  toast('Profile saved!');
+}
+
+// Event Detail
+function openEventDetail(id) {
+  const e = allEvents.find(ev=>ev.id===id);
+  if (!e) return;
+  selectedEvent = e;
+  const booked = myBookings.some(b=>b.eventId===id);
+  const spots = e.capacity - e.enrolled;
+  document.getElementById('detail-title').textContent = e.name;
+  document.getElementById('detail-body').innerHTML = `
+    <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;padding:1rem;background:var(--surface);border-radius:10px">
+      <div style="font-size:3rem">${sportEmojis[e.sport]||'🎯'}</div>
+      <div>
+        <div style="font-weight:700;font-size:1.1rem">${e.name}</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-top:0.2rem">${e.sport} · ${e.type?.replace('_',' ')}</div>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1.25rem">
+      <div style="background:var(--surface);padding:0.75rem;border-radius:10px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600">Date</div><div style="font-weight:600;margin-top:0.2rem">${e.date}</div></div>
+      <div style="background:var(--surface);padding:0.75rem;border-radius:10px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600">Time</div><div style="font-weight:600;margin-top:0.2rem">${e.time} – ${e.endTime}</div></div>
+      <div style="background:var(--surface);padding:0.75rem;border-radius:10px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600">Location</div><div style="font-weight:600;margin-top:0.2rem">${e.location}</div></div>
+      <div style="background:var(--surface);padding:0.75rem;border-radius:10px"><div style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:600">Price</div><div style="font-weight:600;margin-top:0.2rem;color:var(--brand-mid)">${e.price===0?'Free':'₱'+e.price}</div></div>
+    </div>
+    ${e.instructor?`<div style="margin-bottom:1rem"><div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);margin-bottom:0.3rem">Instructor</div><div>👤 ${e.instructor}</div></div>`:''}
+    ${e.description?`<div style="margin-bottom:1rem;line-height:1.6;font-size:0.9rem;color:var(--muted)">${e.description}</div>`:''}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-top:0.75rem;border-top:1px solid var(--border)">
+      <div style="font-size:0.85rem"><span style="font-weight:600">${e.enrolled}</span>/${e.capacity} enrolled · <span class="${spots<=3?'spots-badge low':'spots-badge'}">${spots} spot${spots!==1?'s':''} left</span></div>
+      ${booked?'<span class="badge badge-success">✓ Already booked</span>':''}
+    </div>`;
+  const bookBtn = document.getElementById('book-btn');
+  if (booked) { bookBtn.textContent='Already Booked'; bookBtn.disabled=true; }
+  else if (e.status==='full') { bookBtn.textContent='Join Waitlist'; bookBtn.disabled=false; }
+  else { bookBtn.textContent='Book Now'; bookBtn.disabled=false; }
+  document.getElementById('event-detail-modal').classList.add('show');
+}
+
+async function bookEvent() {
+  if (!selectedEvent) return;
+  const btn = document.getElementById('book-btn');
+  btn.innerHTML = '<span class="spinner-sm"></span> Booking…';
+  btn.disabled = true;
+  const res = await API.createBooking(currentUser.id, selectedEvent.id);
+  if (res.success) {
+    toast('🎉 '+res.message);
+    closeModal('event-detail-modal');
+    await loadData();
+  } else {
+    toast(res.message||'Error booking event','error');
+    btn.textContent='Book Now'; btn.disabled=false;
+  }
+}
+
+async function cancelBooking(id) {
+  if (!confirm('Cancel this booking?')) return;
+  const res = await API.cancelBooking(id);
+  if (res.success) { toast('Booking cancelled'); await loadData(); }
+  else toast('Error cancelling booking','error');
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const labels = { home:'Home', events:'Browse Events', 'my-bookings':'My Bookings', announcements:'Announcements', profile:'My Profile' };
+  document.getElementById('page-title').textContent = labels[name]||name;
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.textContent.toLowerCase().includes(labels[name]?.toLowerCase()||name)) n.classList.add('active');
+  });
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+document.addEventListener('click', e => { if(e.target.classList.contains('modal-overlay')) e.target.classList.remove('show'); });
+</script>
+</body>
+</html>

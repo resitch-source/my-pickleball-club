@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — ClubHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<style>
+body { background: linear-gradient(160deg, #1a3a2a 0%, #0d2b1a 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; }
+.register-card { background: var(--card-bg); border-radius: 20px; padding: 2.5rem; width: 100%; max-width: 540px; box-shadow: 0 24px 80px rgba(0,0,0,0.3); }
+.register-header { margin-bottom: 2rem; text-align: center; }
+.register-logo { font-size: 2rem; margin-bottom: 0.5rem; }
+.register-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--brand); }
+.register-sub { font-size: 0.875rem; color: var(--muted); margin-top: 0.3rem; }
+.tier-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+.tier-card { border: 2px solid var(--border); border-radius: 12px; padding: 1rem; cursor: pointer; transition: all 0.15s; }
+.tier-card:hover { border-color: var(--accent); }
+.tier-card.selected { border-color: var(--brand-mid); background: rgba(45,106,79,0.06); }
+.tier-name { font-weight: 700; font-size: 0.95rem; }
+.tier-price { font-size: 0.82rem; color: var(--muted); }
+.tier-dot { width: 10px; height: 10px; border-radius: 50%; margin-bottom: 0.5rem; }
+.step-indicator { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 2rem; justify-content: center; }
+.step { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 700; }
+.step.active { background: var(--brand-mid); color: white; }
+.step.done { background: var(--accent); color: white; }
+.step.inactive { background: var(--surface); color: var(--muted); border: 1.5px solid var(--border); }
+.step-line { flex: 1; height: 2px; background: var(--border); max-width: 60px; }
+.step-line.done { background: var(--accent); }
+.btn-full { width: 100%; padding: 0.9rem; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 600; cursor: pointer; border: none; transition: all 0.2s; }
+.btn-green { background: var(--brand-mid); color: white; }
+.btn-green:hover { background: var(--brand); }
+.back-link { text-align: center; margin-top: 1rem; font-size: 0.85rem; color: var(--muted); }
+.back-link a { color: var(--brand-mid); }
+</style>
+</head>
+<body>
+<div class="register-card">
+  <div class="register-header">
+    <div class="register-logo">🏟️</div>
+    <div class="register-title">Create Account</div>
+    <div class="register-sub">Join your club and start booking today</div>
+  </div>
+
+  <div class="step-indicator">
+    <div class="step active" id="step1-dot">1</div>
+    <div class="step-line" id="line1"></div>
+    <div class="step inactive" id="step2-dot">2</div>
+    <div class="step-line" id="line2"></div>
+    <div class="step inactive" id="step3-dot">3</div>
+  </div>
+
+  <!-- Step 1: Basic Info -->
+  <div id="step1">
+    <div class="form-grid">
+      <div class="form-group form-full"><label>Full Name</label><input type="text" id="r-name" placeholder="Your full name"></div>
+      <div class="form-group"><label>Email</label><input type="email" id="r-email" placeholder="email@example.com"></div>
+      <div class="form-group"><label>Phone</label><input type="text" id="r-phone" placeholder="+63 912 000 0000"></div>
+      <div class="form-group form-full"><label>Password</label><input type="password" id="r-password" placeholder="Choose a secure password"></div>
+    </div>
+    <button class="btn-full btn-green" onclick="nextStep(2)" style="margin-top:1rem">Continue →</button>
+  </div>
+
+  <!-- Step 2: Sport & Tier -->
+  <div id="step2" style="display:none">
+    <div class="form-group" style="margin-bottom:1.2rem">
+      <label>Preferred Sport</label>
+      <select id="r-sport" style="padding:0.7rem 0.9rem;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:0.9rem;color:var(--text);background:var(--card-bg);outline:none;width:100%"></select>
+    </div>
+    <div style="font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:0.07em;color:var(--muted);margin-bottom:0.6rem">Membership Tier</div>
+    <div class="tier-grid" id="tier-grid"></div>
+    <button class="btn-full btn-green" onclick="nextStep(3)">Continue →</button>
+    <div class="back-link"><a href="#" onclick="nextStep(1)">← Back</a></div>
+  </div>
+
+  <!-- Step 3: Confirm -->
+  <div id="step3" style="display:none">
+    <div style="background:var(--surface);border-radius:12px;padding:1.25rem;margin-bottom:1.5rem">
+      <div style="font-weight:700;font-size:1.1rem;margin-bottom:1rem">Review your details</div>
+      <div id="review-details" style="display:flex;flex-direction:column;gap:0.5rem;font-size:0.875rem"></div>
+    </div>
+    <button class="btn-full btn-green" onclick="submitRegistration()" id="submit-btn">Create Account 🎉</button>
+    <div class="back-link"><a href="#" onclick="nextStep(2)">← Back</a></div>
+  </div>
+
+  <div class="back-link" style="margin-top:1.5rem">Already have an account? <a href="../index.html">Sign in →</a></div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script>
+let selectedTier = 'Guest';
+
+window.onload = () => {
+  // Sports
+  const sel = document.getElementById('r-sport');
+  CONFIG.SPORTS.forEach(s => { const o = document.createElement('option'); o.value=s; o.textContent=s; sel.appendChild(o); });
+  // Tiers
+  const grid = document.getElementById('tier-grid');
+  CONFIG.MEMBERSHIP_TIERS.forEach(t => {
+    const div = document.createElement('div');
+    div.className = 'tier-card' + (t.id==='guest'?' selected':'');
+    div.innerHTML = `<div class="tier-dot" style="background:${t.color}"></div><div class="tier-name">${t.name}</div><div class="tier-price">${t.price===0?'Free':`₱${t.price}/mo`}</div>`;
+    div.onclick = () => { document.querySelectorAll('.tier-card').forEach(c=>c.classList.remove('selected')); div.classList.add('selected'); selectedTier = t.name; };
+    grid.appendChild(div);
+  });
+};
+
+function nextStep(n) {
+  if (n===2) {
+    const name = document.getElementById('r-name').value.trim();
+    const email = document.getElementById('r-email').value.trim();
+    const pass = document.getElementById('r-password').value;
+    if (!name || !email || !pass) { alert('Please fill in all fields'); return; }
+    if (pass.length < 6) { alert('Password must be at least 6 characters'); return; }
+  }
+  if (n===3) {
+    const details = document.getElementById('review-details');
+    details.innerHTML = [
+      ['Name', document.getElementById('r-name').value],
+      ['Email', document.getElementById('r-email').value],
+      ['Phone', document.getElementById('r-phone').value||'—'],
+      ['Sport', document.getElementById('r-sport').value],
+      ['Membership', selectedTier],
+    ].map(([k,v])=>`<div style="display:flex;justify-content:space-between"><span style="color:var(--muted)">${k}</span><span style="font-weight:500">${v}</span></div>`).join('');
+  }
+  [1,2,3].forEach(i => {
+    document.getElementById('step'+i).style.display = i===n?'block':'none';
+    const dot = document.getElementById('step'+i+'-dot');
+    dot.className = 'step ' + (i===n?'active':i<n?'done':'inactive');
+    if (i<3) document.getElementById('line'+i).className = 'step-line'+(i<n?' done':'');
+  });
+}
+
+async function submitRegistration() {
+  const member = {
+    name: document.getElementById('r-name').value.trim(),
+    email: document.getElementById('r-email').value.trim(),
+    phone: document.getElementById('r-phone').value.trim(),
+    sport: document.getElementById('r-sport').value,
+    membership: selectedTier,
+    status: 'active'
+  };
+  const btn = document.getElementById('submit-btn');
+  btn.innerHTML = '<span class="spinner-sm" style="border-top-color:white"></span> Creating…';
+  btn.disabled = true;
+  const res = await API.createMember(member);
+  if (res.success) {
+    sessionStorage.setItem('clubhub_user', JSON.stringify({ ...member, role:'member', id:res.member?.id||'U'+Date.now() }));
+    window.location.href = 'member.html';
+  } else {
+    alert(res.message||'Error creating account');
+    btn.textContent = 'Create Account 🎉'; btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

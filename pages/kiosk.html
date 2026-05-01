@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kiosk — ClubHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<style>
+body { background: var(--brand); min-height: 100vh; overflow: hidden; }
+.kiosk-wrap {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  padding: 0;
+  background: linear-gradient(160deg, #1a3a2a 0%, #0d2b1a 100%);
+}
+.kiosk-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.2rem 2rem;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.kiosk-logo { display: flex; align-items: center; gap: 0.75rem; }
+.kiosk-logo-text { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: white; }
+.kiosk-logo-sub { font-size: 0.72rem; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 0.12em; }
+.kiosk-time { text-align: right; }
+.kiosk-clock { font-size: 2rem; font-weight: 300; color: white; font-variant-numeric: tabular-nums; }
+.kiosk-date { font-size: 0.8rem; color: rgba(255,255,255,0.55); }
+.kiosk-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; }
+
+/* Idle screen */
+.idle-screen { text-align: center; }
+.idle-title { font-family: 'DM Serif Display', serif; font-size: 3rem; color: white; margin-bottom: 0.5rem; line-height: 1.2; }
+.idle-sub { font-size: 1.1rem; color: rgba(255,255,255,0.6); margin-bottom: 3rem; }
+.kiosk-actions { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; }
+.kiosk-action-btn {
+  background: rgba(255,255,255,0.1);
+  border: 1.5px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  width: 200px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  color: white;
+}
+.kiosk-action-btn:hover { background: rgba(255,255,255,0.18); transform: translateY(-3px); border-color: var(--accent); }
+.kiosk-action-icon { font-size: 3rem; margin-bottom: 1rem; }
+.kiosk-action-title { font-weight: 600; font-size: 1.1rem; }
+.kiosk-action-sub { font-size: 0.82rem; color: rgba(255,255,255,0.6); margin-top: 0.3rem; }
+
+/* Panel */
+.kiosk-panel {
+  background: rgba(255,255,255,0.96);
+  border-radius: 24px;
+  width: 100%; max-width: 600px;
+  padding: 2.5rem;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+  animation: panelIn 0.3s ease;
+}
+@keyframes panelIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+.kiosk-panel-title { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--brand); margin-bottom: 0.3rem; }
+.kiosk-panel-sub { font-size: 0.9rem; color: var(--muted); margin-bottom: 2rem; }
+.kiosk-input {
+  width: 100%;
+  padding: 1rem 1.2rem;
+  font-size: 1.3rem;
+  font-family: 'DM Sans', sans-serif;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  outline: none;
+  text-align: center;
+  letter-spacing: 0.1em;
+  background: var(--surface);
+  color: var(--text);
+  margin-bottom: 1.2rem;
+  transition: border-color 0.2s;
+}
+.kiosk-input:focus { border-color: var(--accent); }
+.kiosk-btn {
+  width: 100%; padding: 1rem;
+  font-size: 1rem; font-weight: 600;
+  font-family: 'DM Sans', sans-serif;
+  border-radius: 12px; border: none; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 0.75rem;
+}
+.kiosk-btn-primary { background: var(--brand-mid); color: white; }
+.kiosk-btn-primary:hover { background: var(--brand); }
+.kiosk-btn-secondary { background: var(--surface); color: var(--text); border: 1.5px solid var(--border); }
+.kiosk-btn-secondary:hover { background: var(--accent-light); }
+
+/* Success screen */
+.success-screen { text-align: center; }
+.success-icon { font-size: 5rem; margin-bottom: 1rem; animation: pop 0.4s ease; }
+@keyframes pop { from{transform:scale(0)} 80%{transform:scale(1.2)} to{transform:scale(1)} }
+.success-title { font-family: 'DM Serif Display', serif; font-size: 2rem; color: var(--brand); }
+.success-name { font-size: 1.4rem; font-weight: 600; color: var(--brand-mid); margin: 0.5rem 0; }
+.success-detail { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+.countdown-ring { font-size: 0.85rem; color: var(--muted); }
+
+/* Event list for kiosk */
+.kiosk-event-list { display: flex; flex-direction: column; gap: 0.75rem; max-height: 340px; overflow-y: auto; margin-bottom: 1.2rem; }
+.kiosk-event-item { display: flex; align-items: center; gap: 1rem; padding: 0.9rem; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.15s; }
+.kiosk-event-item:hover, .kiosk-event-item.selected { border-color: var(--accent); background: rgba(82,183,136,0.06); }
+.kiosk-event-emoji { font-size: 1.8rem; }
+.kiosk-event-info { flex: 1; }
+.kiosk-event-name { font-weight: 600; }
+.kiosk-event-meta { font-size: 0.8rem; color: var(--muted); }
+
+/* Member found card */
+.member-found { background: var(--surface); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 1rem; }
+.member-found-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 700; color: var(--brand); }
+.member-found-name { font-weight: 700; font-size: 1.1rem; }
+.member-found-info { font-size: 0.82rem; color: var(--muted); }
+
+.kiosk-footer { padding: 1rem 2rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; }
+.kiosk-footer-text { font-size: 0.78rem; color: rgba(255,255,255,0.4); }
+.admin-link { font-size: 0.75rem; color: rgba(255,255,255,0.3); cursor: pointer; text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="kiosk-wrap">
+  <div class="kiosk-header">
+    <div class="kiosk-logo">
+      <div style="font-size:2rem">🏟️</div>
+      <div>
+        <div class="kiosk-logo-text">ClubHub</div>
+        <div class="kiosk-logo-sub">Kiosk Terminal</div>
+      </div>
+    </div>
+    <div class="kiosk-time">
+      <div class="kiosk-clock" id="kiosk-clock">00:00</div>
+      <div class="kiosk-date" id="kiosk-date">—</div>
+    </div>
+  </div>
+
+  <div class="kiosk-body" id="kiosk-body">
+    <!-- Screens injected here -->
+  </div>
+
+  <div class="kiosk-footer">
+    <div class="kiosk-footer-text">Touch the screen to get started</div>
+    <span class="admin-link" onclick="goToAdmin()">Admin Panel →</span>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script>
+let allEvents = [], allMembers = [];
+let selectedMember = null, selectedEvent = null;
+let idleTimer = null;
+let screen = 'idle';
+
+const sportEmojis = { Tennis:'🎾', Badminton:'🏸', Basketball:'🏀', Pickleball:'🏓', Volleyball:'🏐', Swimming:'🏊', Gym:'💪' };
+
+// Clock
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('kiosk-clock').textContent = `${h}:${m}`;
+  document.getElementById('kiosk-date').textContent = now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// Init
+window.onload = async () => {
+  const [evRes, memRes] = await Promise.all([API.getEvents(), API.getMembers()]);
+  allEvents = (evRes.data||[]).filter(e=>e.status==='open');
+  allMembers = memRes.data||[];
+  showIdle();
+};
+
+// Reset to idle after inactivity
+function resetIdleTimer() {
+  clearTimeout(idleTimer);
+  if (screen !== 'idle' && screen !== 'success') {
+    idleTimer = setTimeout(() => showIdle(), 60000);
+  }
+}
+document.addEventListener('touchstart', resetIdleTimer);
+document.addEventListener('click', resetIdleTimer);
+
+function setScreen(name) { screen = name; resetIdleTimer(); }
+
+function showIdle() {
+  setScreen('idle');
+  document.getElementById('kiosk-body').innerHTML = `
+    <div class="idle-screen">
+      <div class="idle-title">Hello!<br>Welcome to the Club.</div>
+      <div class="idle-sub">What would you like to do today?</div>
+      <div class="kiosk-actions">
+        <div class="kiosk-action-btn" onclick="showCheckIn()">
+          <div class="kiosk-action-icon">✅</div>
+          <div class="kiosk-action-title">Check In</div>
+          <div class="kiosk-action-sub">Scan or enter your member ID</div>
+        </div>
+        <div class="kiosk-action-btn" onclick="showBrowseEvents()">
+          <div class="kiosk-action-icon">📅</div>
+          <div class="kiosk-action-title">Book Event</div>
+          <div class="kiosk-action-sub">Reserve a spot in today's events</div>
+        </div>
+        <div class="kiosk-action-btn" onclick="showGuestCheckIn()">
+          <div class="kiosk-action-icon">👤</div>
+          <div class="kiosk-action-title">Guest Access</div>
+          <div class="kiosk-action-sub">One-time visit check-in</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function showCheckIn() {
+  setScreen('checkin');
+  selectedMember = null;
+  document.getElementById('kiosk-body').innerHTML = `
+    <div class="kiosk-panel">
+      <div class="kiosk-panel-title">✅ Member Check-in</div>
+      <div class="kiosk-panel-sub">Enter your email address or member ID to check in</div>
+      <input type="email" class="kiosk-input" id="ci-email" placeholder="your@email.com" autofocus oninput="lookupMember(this.value)">
+      <div id="member-lookup-result"></div>
+      <button class="kiosk-btn kiosk-btn-primary" id="ci-confirm-btn" onclick="confirmCheckIn()" style="display:none">Confirm Check-in</button>
+      <button class="kiosk-btn kiosk-btn-secondary" onclick="showIdle()">← Back</button>
+    </div>`;
+}
+
+let lookupTimeout = null;
+function lookupMember(val) {
+  clearTimeout(lookupTimeout);
+  if (val.length < 3) { document.getElementById('member-lookup-result').innerHTML=''; document.getElementById('ci-confirm-btn').style.display='none'; return; }
+  lookupTimeout = setTimeout(() => {
+    const found = allMembers.find(m=>m.email.toLowerCase()===val.toLowerCase()||m.id.toLowerCase()===val.toLowerCase());
+    const res = document.getElementById('member-lookup-result');
+    if (found) {
+      selectedMember = found;
+      res.innerHTML = `<div class="member-found">
+        <div class="member-found-avatar">${found.name[0]}</div>
+        <div><div class="member-found-name">${found.name}</div><div class="member-found-info">${found.membership} Member · ${found.sport||'Multi-sport'}</div></div>
+        <span class="badge badge-success">${found.status}</span>
+      </div>`;
+      document.getElementById('ci-confirm-btn').style.display='block';
+    } else {
+      selectedMember = null;
+      res.innerHTML='<div style="color:#dc3545;font-size:0.85rem;margin-bottom:1rem">No member found with that email or ID.</div>';
+      document.getElementById('ci-confirm-btn').style.display='none';
+    }
+  }, 500);
+}
+
+async function confirmCheckIn() {
+  if (!selectedMember) return;
+  const btn = document.getElementById('ci-confirm-btn');
+  btn.innerHTML = '<span class="spinner-sm"></span> Checking in…';
+  btn.disabled = true;
+  const res = await API.checkIn(selectedMember.id, selectedMember.name, 'General Access');
+  if (res.success) showSuccess(selectedMember.name, 'General Access', 'Have a great session!');
+  else { toast('Check-in failed','error'); btn.textContent='Confirm Check-in'; btn.disabled=false; }
+}
+
+function showGuestCheckIn() {
+  setScreen('guest');
+  document.getElementById('kiosk-body').innerHTML = `
+    <div class="kiosk-panel">
+      <div class="kiosk-panel-title">👤 Guest Check-in</div>
+      <div class="kiosk-panel-sub">Please enter your name to sign in as a guest</div>
+      <input type="text" class="kiosk-input" id="guest-name" placeholder="Your full name">
+      <button class="kiosk-btn kiosk-btn-primary" onclick="confirmGuestCheckIn()">Check In as Guest</button>
+      <button class="kiosk-btn kiosk-btn-secondary" onclick="showIdle()">← Back</button>
+    </div>`;
+}
+
+async function confirmGuestCheckIn() {
+  const name = document.getElementById('guest-name').value.trim();
+  if (!name) { return; }
+  const res = await API.checkIn('GUEST', name, 'Guest Visit');
+  if (res.success) showSuccess(name, 'Guest Visit', 'Welcome to the club!');
+}
+
+function showBrowseEvents() {
+  setScreen('browse');
+  const today = new Date().toISOString().split('T')[0];
+  const todayEvents = allEvents; // show all open
+  document.getElementById('kiosk-body').innerHTML = `
+    <div class="kiosk-panel">
+      <div class="kiosk-panel-title">📅 Available Events</div>
+      <div class="kiosk-panel-sub">Select an event to book your spot</div>
+      <div class="kiosk-event-list">
+        ${todayEvents.map(e=>`<div class="kiosk-event-item" onclick="selectKioskEvent('${e.id}', this)">
+          <div class="kiosk-event-emoji">${sportEmojis[e.sport]||'🎯'}</div>
+          <div class="kiosk-event-info">
+            <div class="kiosk-event-name">${e.name}</div>
+            <div class="kiosk-event-meta">${e.date} · ${e.time}–${e.endTime} · ${e.location} · ₱${e.price}</div>
+          </div>
+          <span class="badge badge-${e.status==='open'?'success':'danger'}">${e.capacity-e.enrolled} spots</span>
+        </div>`).join('')||'<div style="color:var(--muted);text-align:center;padding:2rem">No events available</div>'}
+      </div>
+      <button class="kiosk-btn kiosk-btn-primary" id="book-event-btn" onclick="proceedToBooking()" style="display:none">Book Selected Event →</button>
+      <button class="kiosk-btn kiosk-btn-secondary" onclick="showIdle()">← Back</button>
+    </div>`;
+}
+
+function selectKioskEvent(id, el) {
+  selectedEvent = allEvents.find(e=>e.id===id);
+  document.querySelectorAll('.kiosk-event-item').forEach(i=>i.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('book-event-btn').style.display='block';
+}
+
+function proceedToBooking() {
+  if (!selectedEvent) return;
+  setScreen('book-email');
+  document.getElementById('kiosk-body').innerHTML = `
+    <div class="kiosk-panel">
+      <div class="kiosk-panel-title">📅 Book: ${selectedEvent.name}</div>
+      <div class="kiosk-panel-sub">Enter your member email to reserve your spot</div>
+      <div style="background:var(--surface);border-radius:10px;padding:1rem;margin-bottom:1.2rem;font-size:0.9rem">
+        📅 ${selectedEvent.date} · ${selectedEvent.time} · ${selectedEvent.location} · <strong>${selectedEvent.price===0?'Free':'₱'+selectedEvent.price}</strong>
+      </div>
+      <input type="email" class="kiosk-input" id="book-email" placeholder="your@email.com" oninput="lookupForBooking(this.value)">
+      <div id="booking-member-result"></div>
+      <button class="kiosk-btn kiosk-btn-primary" id="confirm-booking-btn" onclick="confirmKioskBooking()" style="display:none">Confirm Booking</button>
+      <button class="kiosk-btn kiosk-btn-secondary" onclick="showBrowseEvents()">← Back</button>
+    </div>`;
+}
+
+let bookLookupTimeout = null;
+function lookupForBooking(val) {
+  clearTimeout(bookLookupTimeout);
+  if (val.length < 3) { document.getElementById('booking-member-result').innerHTML=''; document.getElementById('confirm-booking-btn').style.display='none'; return; }
+  bookLookupTimeout = setTimeout(() => {
+    const found = allMembers.find(m=>m.email.toLowerCase()===val.toLowerCase());
+    const res = document.getElementById('booking-member-result');
+    if (found) {
+      selectedMember = found;
+      res.innerHTML = `<div class="member-found">
+        <div class="member-found-avatar">${found.name[0]}</div>
+        <div><div class="member-found-name">${found.name}</div><div class="member-found-info">${found.membership} Member</div></div>
+      </div>`;
+      document.getElementById('confirm-booking-btn').style.display='block';
+    } else {
+      selectedMember = null;
+      res.innerHTML='<div style="color:#dc3545;font-size:0.85rem;margin-bottom:1rem">Member not found.</div>';
+      document.getElementById('confirm-booking-btn').style.display='none';
+    }
+  }, 500);
+}
+
+async function confirmKioskBooking() {
+  if (!selectedMember || !selectedEvent) return;
+  const btn = document.getElementById('confirm-booking-btn');
+  btn.innerHTML = '<span class="spinner-sm"></span> Booking…';
+  btn.disabled = true;
+  const res = await API.createBooking(selectedMember.id, selectedEvent.id);
+  if (res.success) showSuccess(selectedMember.name, selectedEvent.name, `${selectedEvent.date} · ${selectedEvent.time}`);
+  else { toast(res.message||'Error','error'); btn.textContent='Confirm Booking'; btn.disabled=false; }
+}
+
+function showSuccess(name, event, detail) {
+  setScreen('success');
+  document.getElementById('kiosk-body').innerHTML = `
+    <div class="kiosk-panel" style="text-align:center">
+      <div class="success-icon">✅</div>
+      <div style="font-family:'DM Serif Display',serif;font-size:2rem;color:var(--brand);margin-bottom:0.5rem">You're all set!</div>
+      <div style="font-size:1.4rem;font-weight:700;color:var(--brand-mid);margin:0.5rem 0">${name}</div>
+      <div style="color:var(--muted);font-size:0.95rem;margin-bottom:0.5rem">${event}</div>
+      <div style="color:var(--muted);font-size:0.85rem;margin-bottom:2rem">${detail}</div>
+      <button class="kiosk-btn kiosk-btn-primary" onclick="showIdle()">Done</button>
+    </div>`;
+  setTimeout(() => showIdle(), 8000);
+}
+
+function goToAdmin() {
+  if (confirm('Go to Admin Panel?')) window.location.href = '../pages/admin.html';
+}
+</script>
+</body>
+</html>
