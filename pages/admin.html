@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — ClubHub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/global.css">
+<style>
+.tab-bar {
+  display: flex; gap: 4px;
+  background: var(--surface); border-radius: 10px;
+  padding: 4px; margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 0.55rem 1rem; border-radius: 8px;
+  border: none; background: transparent;
+  font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 500;
+  cursor: pointer; color: var(--muted); transition: all 0.15s;
+  display: flex; align-items: center; gap: 0.4rem;
+}
+.tab-btn.active { background: var(--card-bg); color: var(--brand); box-shadow: 0 1px 6px rgba(0,0,0,0.08); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.quick-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; }
+.event-row { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border); }
+.event-row:last-child { border-bottom: none; }
+.event-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.event-info { flex: 1; }
+.event-name { font-weight: 500; font-size: 0.875rem; }
+.event-meta { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.capacity-bar { height: 4px; background: var(--border); border-radius: 4px; margin-top: 4px; overflow: hidden; }
+.capacity-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width 0.5s; }
+.capacity-fill.full { background: #dc3545; }
+.capacity-fill.near { background: var(--gold); }
+.filter-bar { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+.filter-bar input, .filter-bar select { padding: 0.5rem 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.85rem; color: var(--text); background: var(--card-bg); outline: none; }
+.filter-bar input:focus, .filter-bar select:focus { border-color: var(--accent); }
+.filter-bar input { flex: 1; min-width: 180px; }
+.scheduler-view { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+.view-btn { padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid var(--border); background: var(--card-bg); font-size: 0.8rem; cursor: pointer; color: var(--muted); }
+.view-btn.active { background: var(--brand-mid); color: white; border-color: var(--brand-mid); }
+.cal-nav { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.cal-nav button { background: none; border: 1px solid var(--border); border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; font-size: 0.9rem; color: var(--text); }
+.cal-nav button:hover { background: var(--surface); }
+.cal-month { font-weight: 600; font-size: 1rem; }
+.checkin-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.checkin-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: var(--surface); border-radius: 10px; }
+.checkin-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent-light); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.85rem; color: var(--brand); flex-shrink: 0; }
+.checkin-info { flex: 1; }
+.checkin-name { font-weight: 500; font-size: 0.875rem; }
+.checkin-time { font-size: 0.75rem; color: var(--muted); }
+.sport-chip { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 12px; font-size: 0.7rem; font-weight: 600; background: rgba(52,152,219,0.12); color: #2471a3; }
+.announcement-item { padding: 1rem; border-radius: 10px; border-left: 4px solid var(--accent); background: var(--surface); margin-bottom: 0.75rem; }
+.announcement-item.high { border-color: #dc3545; }
+.announcement-title { font-weight: 600; font-size: 0.9rem; }
+.announcement-msg { font-size: 0.82rem; color: var(--muted); margin-top: 0.3rem; }
+.announcement-date { font-size: 0.72rem; color: var(--muted); margin-top: 0.4rem; }
+@media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- Sidebar -->
+  <nav class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">🏟️</div>
+      <div>
+        <div class="sidebar-logo-text">ClubHub</div>
+        <div class="sidebar-logo-sub">Admin Panel</div>
+      </div>
+    </div>
+    <div class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <button class="nav-item active" onclick="showTab('dashboard')"><span class="nav-icon">📊</span> Dashboard</button>
+      <button class="nav-item" onclick="showTab('events')"><span class="nav-icon">📅</span> Events</button>
+      <button class="nav-item" onclick="showTab('scheduler')"><span class="nav-icon">🗓️</span> Scheduler</button>
+      <button class="nav-item" onclick="showTab('members')"><span class="nav-icon">👥</span> Members</button>
+      <button class="nav-item" onclick="showTab('checkins')"><span class="nav-icon">✅</span> Check-ins</button>
+      <div class="nav-section-label">Content</div>
+      <button class="nav-item" onclick="showTab('announcements')"><span class="nav-icon">📢</span> Announcements</button>
+      <button class="nav-item" onclick="showTab('membership')"><span class="nav-icon">🎫</span> Memberships</button>
+      <div class="nav-section-label">System</div>
+      <button class="nav-item" onclick="window.open('../pages/kiosk.html','_blank')"><span class="nav-icon">🖥️</span> Open Kiosk</button>
+      <button class="nav-item" onclick="showSettings()"><span class="nav-icon">⚙️</span> Settings</button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-chip" onclick="logout()">
+        <div class="user-avatar" id="admin-avatar">A</div>
+        <div>
+          <div class="user-name" id="admin-name">Admin</div>
+          <div class="user-role">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <div class="main-content">
+    <div class="top-bar">
+      <div style="display:flex;align-items:center;gap:0.75rem">
+        <button class="hamburger" id="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div class="top-bar-title" id="page-title">Dashboard</div>
+      </div>
+      <div class="top-bar-actions">
+        <span id="demo-badge" style="font-size:0.72rem;background:rgba(212,168,67,0.15);color:#8a6820;padding:3px 8px;border-radius:12px;font-weight:600;display:none">DEMO MODE</span>
+        <button class="btn btn-secondary btn-sm" onclick="refreshAll()">🔄 Refresh</button>
+        <button class="btn btn-primary btn-sm" onclick="openEventModal()">+ New Event</button>
+      </div>
+    </div>
+
+    <div class="page-content">
+      <!-- DASHBOARD TAB -->
+      <div class="tab-panel active" id="tab-dashboard">
+        <div class="stats-grid" id="stats-grid">
+          <div class="stat-card"><div class="stat-label">Total Members</div><div class="stat-value" id="s-members">—</div><div class="stat-change">Active accounts</div></div>
+          <div class="stat-card"><div class="stat-label">Active Members</div><div class="stat-value" id="s-active">—</div><div class="stat-change">Registered & enabled</div></div>
+          <div class="stat-card"><div class="stat-label">Open Events</div><div class="stat-value" id="s-events">—</div><div class="stat-change">Accepting bookings</div></div>
+          <div class="stat-card"><div class="stat-label">Today's Check-ins</div><div class="stat-value" id="s-checkins">—</div><div class="stat-change">Facility entries</div></div>
+        </div>
+        <div class="dashboard-grid">
+          <div class="card">
+            <div class="card-header"><div class="card-title">📅 Upcoming Events</div><button class="btn btn-secondary btn-sm" onclick="showTab('events')">View All</button></div>
+            <div id="upcoming-events-list"><div style="color:var(--muted);font-size:0.85rem">Loading…</div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:1.25rem">
+            <div class="card">
+              <div class="card-header"><div class="card-title">🕒 Recent Bookings</div></div>
+              <div id="recent-bookings-list"><div style="color:var(--muted);font-size:0.85rem">Loading…</div></div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title">📢 Announcements</div><button class="btn btn-secondary btn-sm" onclick="openAnnouncementModal()">+ Add</button></div>
+              <div id="dash-announcements"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENTS TAB -->
+      <div class="tab-panel" id="tab-events">
+        <div class="filter-bar">
+          <input type="text" id="event-search" placeholder="🔍 Search events…" oninput="filterEvents()">
+          <select id="event-sport" onchange="filterEvents()"><option value="">All Sports</option></select>
+          <select id="event-status" onchange="filterEvents()"><option value="">All Status</option><option value="open">Open</option><option value="full">Full</option><option value="cancelled">Cancelled</option></select>
+          <button class="btn btn-primary" onclick="openEventModal()">+ New Event</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Event</th><th>Sport</th><th>Date & Time</th><th>Location</th><th>Capacity</th><th>Price</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="events-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- SCHEDULER TAB -->
+      <div class="tab-panel" id="tab-scheduler">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem">
+          <div class="scheduler-view">
+            <button class="view-btn active" onclick="setCalView('month',this)">Month</button>
+            <button class="view-btn" onclick="setCalView('week',this)">Week</button>
+            <button class="view-btn" onclick="setCalView('list',this)">List</button>
+          </div>
+          <div class="cal-nav">
+            <button onclick="changeMonth(-1)">‹</button>
+            <div class="cal-month" id="cal-month-label">May 2026</div>
+            <button onclick="changeMonth(1)">›</button>
+          </div>
+        </div>
+        <div id="scheduler-container"></div>
+      </div>
+
+      <!-- MEMBERS TAB -->
+      <div class="tab-panel" id="tab-members">
+        <div class="filter-bar">
+          <input type="text" id="member-search" placeholder="🔍 Search members…" oninput="filterMembers()">
+          <select id="member-tier" onchange="filterMembers()"><option value="">All Tiers</option><option value="Guest">Guest</option><option value="Basic">Basic</option><option value="Premium">Premium</option><option value="VIP">VIP</option></select>
+          <select id="member-status" onchange="filterMembers()"><option value="">All Status</option><option value="active">Active</option><option value="inactive">Inactive</option></select>
+          <button class="btn btn-primary" onclick="openMemberModal()">+ Add Member</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Member</th><th>Sport</th><th>Membership</th><th>Status</th><th>Joined</th><th>Bookings</th><th>Actions</th></tr></thead>
+            <tbody id="members-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CHECK-INS TAB -->
+      <div class="tab-panel" id="tab-checkins">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.75rem">
+          <div class="filter-bar" style="margin:0;flex:1">
+            <input type="text" id="checkin-search" placeholder="🔍 Search check-ins…" oninput="filterCheckIns()">
+            <input type="date" id="checkin-date" onchange="filterCheckIns()" value="">
+          </div>
+          <button class="btn btn-primary" onclick="openManualCheckIn()">✅ Manual Check-in</button>
+        </div>
+        <div class="checkin-list" id="checkin-list"></div>
+      </div>
+
+      <!-- ANNOUNCEMENTS TAB -->
+      <div class="tab-panel" id="tab-announcements">
+        <div style="margin-bottom:1rem"><button class="btn btn-primary" onclick="openAnnouncementModal()">+ New Announcement</button></div>
+        <div id="announcements-list"></div>
+      </div>
+
+      <!-- MEMBERSHIPS TAB -->
+      <div class="tab-panel" id="tab-membership">
+        <div class="stats-grid" style="margin-bottom:1.5rem" id="membership-stats"></div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Membership Tiers</div></div>
+          <div id="tier-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Event Modal -->
+<div class="modal-overlay" id="event-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="event-modal-title">New Event</div>
+      <button class="modal-close" onclick="closeModal('event-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-full"><label>Event Name</label><input type="text" id="ev-name" placeholder="e.g. Morning Tennis Clinic"></div>
+        <div class="form-group"><label>Sport</label><select id="ev-sport"></select></div>
+        <div class="form-group"><label>Type</label><select id="ev-type"><option value="clinic">Clinic</option><option value="open_play">Open Play</option><option value="tournament">Tournament</option><option value="training">Training</option></select></div>
+        <div class="form-group"><label>Date</label><input type="date" id="ev-date"></div>
+        <div class="form-group"><label>Start Time</label><input type="time" id="ev-time"></div>
+        <div class="form-group"><label>End Time</label><input type="time" id="ev-endtime"></div>
+        <div class="form-group"><label>Location</label><input type="text" id="ev-location" placeholder="e.g. Court A"></div>
+        <div class="form-group"><label>Capacity</label><input type="number" id="ev-capacity" min="1" value="12"></div>
+        <div class="form-group"><label>Price (₱)</label><input type="number" id="ev-price" min="0" value="0"></div>
+        <div class="form-group"><label>Instructor</label><input type="text" id="ev-instructor" placeholder="Optional"></div>
+        <div class="form-group form-full"><label>Description</label><textarea id="ev-desc" placeholder="Event details…"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('event-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveEvent()" id="save-event-btn">Create Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Member Modal -->
+<div class="modal-overlay" id="member-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="member-modal-title">Add Member</div>
+      <button class="modal-close" onclick="closeModal('member-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-full"><label>Full Name</label><input type="text" id="m-name" placeholder="Full name"></div>
+        <div class="form-group"><label>Email</label><input type="email" id="m-email" placeholder="email@example.com"></div>
+        <div class="form-group"><label>Phone</label><input type="text" id="m-phone" placeholder="+63 912 000 0000"></div>
+        <div class="form-group"><label>Sport</label><select id="m-sport"></select></div>
+        <div class="form-group"><label>Membership Tier</label><select id="m-tier"><option value="Guest">Guest</option><option value="Basic">Basic</option><option value="Premium">Premium</option><option value="VIP">VIP</option></select></div>
+        <div class="form-group"><label>Status</label><select id="m-status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('member-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveMember()" id="save-member-btn">Add Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- Announcement Modal -->
+<div class="modal-overlay" id="announcement-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">New Announcement</div>
+      <button class="modal-close" onclick="closeModal('announcement-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-full"><label>Title</label><input type="text" id="ann-title" placeholder="Announcement title"></div>
+        <div class="form-group form-full"><label>Message</label><textarea id="ann-msg" placeholder="Announcement details…"></textarea></div>
+        <div class="form-group"><label>Priority</label><select id="ann-priority"><option value="normal">Normal</option><option value="high">High Priority</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('announcement-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveAnnouncement()">Publish</button>
+    </div>
+  </div>
+</div>
+
+<!-- Check-in Modal -->
+<div class="modal-overlay" id="checkin-modal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Manual Check-in</div><button class="modal-close" onclick="closeModal('checkin-modal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group form-full"><label>Member</label><select id="ci-member"></select></div>
+        <div class="form-group form-full"><label>Event / Activity</label><input type="text" id="ci-event" placeholder="e.g. Open Play, Gym Access"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('checkin-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="doManualCheckIn()">Check In</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/api.js"></script>
+<script>
+let allEvents = [], allMembers = [], allBookings = [], allCheckIns = [], allAnnouncements = [];
+let editEventId = null, editMemberId = null;
+let calYear = 2026, calMonth = 4; // May 2026 (0-indexed)
+let calView = 'month';
+
+// Init
+window.onload = async () => {
+  const user = requireAuth(['admin','staff']);
+  if (!user) return;
+  document.getElementById('admin-name').textContent = user.name || 'Admin';
+  document.getElementById('admin-avatar').textContent = (user.name||'A')[0].toUpperCase();
+  if (CONFIG.DEMO_MODE) document.getElementById('demo-badge').style.display = 'inline';
+
+  populateSportSelects();
+  await refreshAll();
+};
+
+function populateSportSelects() {
+  const sports = CONFIG.SPORTS;
+  ['ev-sport','m-sport'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sports.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
+  });
+  const evSportFilter = document.getElementById('event-sport');
+  sports.forEach(s => { const o = document.createElement('option'); o.value = s; o.textContent = s; evSportFilter.appendChild(o); });
+}
+
+async function refreshAll() {
+  const [evRes, memRes, bkRes, ciRes, dashRes, annRes] = await Promise.all([
+    API.getEvents(), API.getMembers(), API.getBookings(), API.getCheckIns(), API.getDashboard(), API.getAnnouncements()
+  ]);
+  allEvents = evRes.data || [];
+  allMembers = memRes.data || [];
+  allBookings = bkRes.data || [];
+  allCheckIns = ciRes.data || [];
+  allAnnouncements = annRes.data || [];
+  const dash = dashRes.data || {};
+  renderDashboard(dash);
+  renderEvents();
+  renderMembers();
+  renderCheckIns();
+  renderCalendar();
+  renderAnnouncements();
+  renderMemberships();
+}
+
+function renderDashboard(d) {
+  document.getElementById('s-members').textContent = d.totalMembers ?? allMembers.filter(m=>m.role==='member').length;
+  document.getElementById('s-active').textContent = d.activeMembers ?? allMembers.filter(m=>m.status==='active').length;
+  document.getElementById('s-events').textContent = d.openEvents ?? allEvents.filter(e=>e.status==='open').length;
+  document.getElementById('s-checkins').textContent = d.todayCheckIns ?? allCheckIns.length;
+  // Upcoming events
+  const open = allEvents.filter(e=>e.status==='open').slice(0,5);
+  document.getElementById('upcoming-events-list').innerHTML = open.length ? open.map(e => {
+    const pct = Math.round((e.enrolled/e.capacity)*100);
+    const cls = pct>=100?'full':pct>=80?'near':'';
+    const colors = { Tennis:'#2471a3', Badminton:'#1b7a4b', Basketball:'#8a6820', Pickleball:'#7b2d8b', Swimming:'#2e86c1', Volleyball:'#c0392b', Gym:'#616a6b' };
+    return `<div class="event-row">
+      <div class="event-dot" style="background:${colors[e.sport]||'#52b788'}"></div>
+      <div class="event-info">
+        <div class="event-name">${e.name}</div>
+        <div class="event-meta">${e.date} · ${e.time} · ${e.location}</div>
+        <div class="capacity-bar"><div class="capacity-fill ${cls}" style="width:${Math.min(pct,100)}%"></div></div>
+      </div>
+      <div style="font-size:0.8rem;color:var(--muted);white-space:nowrap">${e.enrolled}/${e.capacity}</div>
+    </div>`;
+  }).join('') : '<div style="color:var(--muted);font-size:0.85rem">No upcoming events</div>';
+  // Recent bookings
+  const bk = allBookings.slice(0,5);
+  document.getElementById('recent-bookings-list').innerHTML = bk.map(b =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;padding:0.6rem 0;border-bottom:1px solid var(--border)">
+      <div><div style="font-size:0.85rem;font-weight:500">${b.eventName}</div><div style="font-size:0.75rem;color:var(--muted)">${b.date}</div></div>
+      <span class="badge badge-${b.status==='confirmed'?'success':'warning'}">${b.status}</span>
+    </div>`
+  ).join('') || '<div style="color:var(--muted);font-size:0.85rem">No bookings yet</div>';
+  // Announcements in dashboard
+  document.getElementById('dash-announcements').innerHTML = allAnnouncements.slice(0,2).map(a =>
+    `<div class="announcement-item ${a.priority==='high'?'high':''}">
+      <div class="announcement-title">${a.title}</div>
+      <div class="announcement-msg">${a.message}</div>
+    </div>`
+  ).join('') || '<div style="color:var(--muted);font-size:0.85rem">No announcements</div>';
+}
+
+function renderEvents(filtered) {
+  const data = filtered ?? allEvents;
+  const tbody = document.getElementById('events-tbody');
+  tbody.innerHTML = data.map(e => {
+    const pct = Math.round((e.enrolled/e.capacity)*100);
+    return `<tr>
+      <td><div style="font-weight:500">${e.name}</div><div style="font-size:0.75rem;color:var(--muted)">${e.type?.replace('_',' ')}</div></td>
+      <td><span class="sport-chip">${e.sport}</span></td>
+      <td>${e.date}<br><span style="font-size:0.75rem;color:var(--muted)">${e.time}–${e.endTime}</span></td>
+      <td>${e.location}</td>
+      <td><div style="font-size:0.85rem">${e.enrolled}/${e.capacity}</div><div class="capacity-bar" style="width:60px"><div class="capacity-fill ${pct>=100?'full':pct>=80?'near':''}" style="width:${Math.min(pct,100)}%"></div></div></td>
+      <td>₱${e.price}</td>
+      <td><span class="badge badge-${e.status==='open'?'success':e.status==='full'?'danger':'neutral'}">${e.status}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="openEventModal('${e.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')">Del</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:2rem">No events found</td></tr>';
+}
+
+function filterEvents() {
+  const q = document.getElementById('event-search').value.toLowerCase();
+  const sport = document.getElementById('event-sport').value;
+  const status = document.getElementById('event-status').value;
+  renderEvents(allEvents.filter(e =>
+    (!q || e.name.toLowerCase().includes(q) || e.location.toLowerCase().includes(q)) &&
+    (!sport || e.sport === sport) &&
+    (!status || e.status === status)
+  ));
+}
+
+function renderMembers(filtered) {
+  const data = filtered ?? allMembers;
+  const tbody = document.getElementById('members-tbody');
+  tbody.innerHTML = data.map(m => {
+    const bkCount = allBookings.filter(b=>b.userId===m.id).length;
+    const tierColors = { Guest:'#6b6b63', Basic:'#2d6a4f', Premium:'#d4a843', VIP:'#7b2d8b' };
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:0.6rem">
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(82,183,136,0.15);display:flex;align-items:center;justify-content:center;font-weight:600;font-size:0.8rem;color:var(--brand-mid)">${m.name[0]}</div>
+        <div><div style="font-weight:500;font-size:0.875rem">${m.name}</div><div style="font-size:0.72rem;color:var(--muted)">${m.email}</div></div>
+      </div></td>
+      <td><span class="sport-chip">${m.sport||'—'}</span></td>
+      <td><span style="color:${tierColors[m.membership]||'#6b6b63'};font-weight:600;font-size:0.82rem">${m.membership||'Guest'}</span></td>
+      <td><span class="badge badge-${m.status==='active'?'success':'neutral'}">${m.status}</span></td>
+      <td style="font-size:0.82rem">${m.joined||'—'}</td>
+      <td style="font-size:0.85rem">${bkCount}</td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="openMemberModal('${m.id}')">Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="viewMemberBookings('${m.id}')">Bookings</button>
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:2rem">No members found</td></tr>';
+}
+
+function filterMembers() {
+  const q = document.getElementById('member-search').value.toLowerCase();
+  const tier = document.getElementById('member-tier').value;
+  const status = document.getElementById('member-status').value;
+  renderMembers(allMembers.filter(m =>
+    (!q || m.name.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)) &&
+    (!tier || m.membership === tier) &&
+    (!status || m.status === status)
+  ));
+}
+
+function renderCheckIns(filtered) {
+  const data = filtered ?? allCheckIns;
+  document.getElementById('checkin-list').innerHTML = data.map(c =>
+    `<div class="checkin-item">
+      <div class="checkin-avatar">${c.userName[0]}</div>
+      <div class="checkin-info">
+        <div class="checkin-name">${c.userName}</div>
+        <div class="checkin-time">${c.event} · ${c.date} at ${c.time}</div>
+      </div>
+      <span class="badge badge-success">✓ In</span>
+    </div>`
+  ).join('') || '<div style="color:var(--muted);text-align:center;padding:2rem">No check-ins recorded</div>';
+}
+
+function filterCheckIns() {
+  const q = document.getElementById('checkin-search').value.toLowerCase();
+  const date = document.getElementById('checkin-date').value;
+  renderCheckIns(allCheckIns.filter(c =>
+    (!q || c.userName.toLowerCase().includes(q) || c.event.toLowerCase().includes(q)) &&
+    (!date || c.date === date)
+  ));
+}
+
+function renderAnnouncements() {
+  document.getElementById('announcements-list').innerHTML = allAnnouncements.map(a =>
+    `<div class="announcement-item ${a.priority==='high'?'high':''}">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="announcement-title">${a.priority==='high'?'🔴 ':''} ${a.title}</div>
+          <div class="announcement-msg">${a.message}</div>
+          <div class="announcement-date">${a.date}</div>
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.id}')">Delete</button>
+      </div>
+    </div>`
+  ).join('') || '<div style="color:var(--muted);padding:2rem;text-align:center">No announcements</div>';
+}
+
+function renderMemberships() {
+  const tiers = CONFIG.MEMBERSHIP_TIERS;
+  const stats = document.getElementById('membership-stats');
+  stats.innerHTML = tiers.map(t => {
+    const count = allMembers.filter(m=>m.membership===t.name).length;
+    return `<div class="stat-card"><div class="stat-label" style="color:${t.color}">${t.name}</div><div class="stat-value">${count}</div><div class="stat-change">${t.price===0?'Free':`₱${t.price}/mo`}</div></div>`;
+  }).join('');
+  document.getElementById('tier-list').innerHTML = tiers.map(t =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;align-items:center;gap:0.8rem">
+        <div style="width:10px;height:10px;border-radius:50%;background:${t.color}"></div>
+        <div>
+          <div style="font-weight:600">${t.name}</div>
+          <div style="font-size:0.8rem;color:var(--muted)">${t.price===0?'Free membership':`₱${t.price.toLocaleString()} / month`}</div>
+        </div>
+      </div>
+      <div style="font-size:0.9rem;font-weight:500">${allMembers.filter(m=>m.membership===t.name).length} members</div>
+    </div>`
+  ).join('');
+}
+
+// Calendar
+function renderCalendar() {
+  const container = document.getElementById('scheduler-container');
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('cal-month-label').textContent = `${monthNames[calMonth]} ${calYear}`;
+  if (calView === 'list') { renderListView(container); return; }
+  if (calView === 'week') { renderWeekView(container); return; }
+  // Month view
+  const firstDay = new Date(calYear, calMonth, 1).getDay();
+  const daysInMonth = new Date(calYear, calMonth+1, 0).getDate();
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html = `<div class="cal-header">${days.map(d=>`<div class="cal-day-name">${d}</div>`).join('')}</div><div class="calendar-grid">`;
+  for (let i=0;i<firstDay;i++) html += `<div class="cal-cell other-month"></div>`;
+  for (let d=1;d<=daysInMonth;d++) {
+    const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayEvents = allEvents.filter(e=>e.date===dateStr);
+    const isToday = dateStr === todayStr;
+    html += `<div class="cal-cell${isToday?' today':''}">
+      <div class="cal-date">${d}</div>
+      ${dayEvents.slice(0,3).map(e=>`<div class="cal-event" onclick="openEventModal('${e.id}')" title="${e.name}">${e.time} ${e.name}</div>`).join('')}
+      ${dayEvents.length>3?`<div style="font-size:0.65rem;color:var(--muted)">+${dayEvents.length-3} more</div>`:''}
+    </div>`;
+  }
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+function renderListView(container) {
+  const sorted = [...allEvents].sort((a,b)=>a.date.localeCompare(b.date));
+  container.innerHTML = `<div class="table-wrap"><table>
+    <thead><tr><th>Date</th><th>Event</th><th>Time</th><th>Sport</th><th>Location</th><th>Capacity</th><th>Status</th></tr></thead>
+    <tbody>${sorted.map(e=>`<tr>
+      <td style="font-size:0.85rem">${e.date}</td>
+      <td style="font-weight:500;font-size:0.875rem">${e.name}</td>
+      <td style="font-size:0.82rem">${e.time}–${e.endTime}</td>
+      <td><span class="sport-chip">${e.sport}</span></td>
+      <td style="font-size:0.82rem">${e.location}</td>
+      <td style="font-size:0.82rem">${e.enrolled}/${e.capacity}</td>
+      <td><span class="badge badge-${e.status==='open'?'success':'danger'}">${e.status}</span></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function renderWeekView(container) {
+  const d = new Date(calYear, calMonth, 1);
+  const today = new Date();
+  const startOfWeek = new Date(today); startOfWeek.setDate(today.getDate() - today.getDay());
+  const days = Array.from({length:7}, (_,i) => { const dd = new Date(startOfWeek); dd.setDate(startOfWeek.getDate()+i); return dd; });
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  container.innerHTML = `<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">
+    ${days.map((d,i) => {
+      const ds = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      const evs = allEvents.filter(e=>e.date===ds);
+      const isToday = d.toDateString() === today.toDateString();
+      return `<div style="background:var(--card-bg);border:1px solid var(--border);border-radius:10px;padding:0.6rem;min-height:160px;${isToday?'border-color:var(--accent)':''}">
+        <div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px">${dayNames[i]}</div>
+        <div style="font-size:1.1rem;font-weight:600;margin-bottom:6px${isToday?';color:var(--accent)':''}">${d.getDate()}</div>
+        ${evs.map(e=>`<div class="cal-event" onclick="openEventModal('${e.id}')">${e.time} ${e.name}</div>`).join('')}
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+
+function changeMonth(dir) { calMonth += dir; if (calMonth>11){calMonth=0;calYear++;} if (calMonth<0){calMonth=11;calYear--;} renderCalendar(); }
+function setCalView(v, btn) { calView=v; document.querySelectorAll('.view-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderCalendar(); }
+
+// Event Modal
+function openEventModal(id) {
+  editEventId = id || null;
+  const modal = document.getElementById('event-modal');
+  document.getElementById('event-modal-title').textContent = id ? 'Edit Event' : 'New Event';
+  document.getElementById('save-event-btn').textContent = id ? 'Save Changes' : 'Create Event';
+  if (id) {
+    const e = allEvents.find(ev=>ev.id===id);
+    if (e) {
+      document.getElementById('ev-name').value = e.name || '';
+      document.getElementById('ev-sport').value = e.sport || '';
+      document.getElementById('ev-type').value = e.type || 'clinic';
+      document.getElementById('ev-date').value = e.date || '';
+      document.getElementById('ev-time').value = e.time || '';
+      document.getElementById('ev-endtime').value = e.endTime || '';
+      document.getElementById('ev-location').value = e.location || '';
+      document.getElementById('ev-capacity').value = e.capacity || 12;
+      document.getElementById('ev-price').value = e.price || 0;
+      document.getElementById('ev-instructor').value = e.instructor || '';
+      document.getElementById('ev-desc').value = e.description || '';
+    }
+  } else {
+    ['ev-name','ev-location','ev-instructor','ev-desc'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('ev-capacity').value=12;
+    document.getElementById('ev-price').value=0;
+  }
+  modal.classList.add('show');
+}
+
+async function saveEvent() {
+  const event = {
+    name: document.getElementById('ev-name').value.trim(),
+    sport: document.getElementById('ev-sport').value,
+    type: document.getElementById('ev-type').value,
+    date: document.getElementById('ev-date').value,
+    time: document.getElementById('ev-time').value,
+    endTime: document.getElementById('ev-endtime').value,
+    location: document.getElementById('ev-location').value.trim(),
+    capacity: parseInt(document.getElementById('ev-capacity').value),
+    price: parseFloat(document.getElementById('ev-price').value) || 0,
+    instructor: document.getElementById('ev-instructor').value.trim(),
+    description: document.getElementById('ev-desc').value.trim(),
+  };
+  if (!event.name || !event.date) { toast('Please fill in event name and date', 'error'); return; }
+  const btn = document.getElementById('save-event-btn');
+  btn.innerHTML = '<span class="spinner-sm"></span> Saving…';
+  btn.disabled = true;
+  const res = editEventId ? await API.updateEvent(editEventId, event) : await API.createEvent(event);
+  btn.innerHTML = editEventId ? 'Save Changes' : 'Create Event';
+  btn.disabled = false;
+  if (res.success) { toast(res.message); closeModal('event-modal'); await refreshAll(); }
+  else toast(res.message || 'Error saving event', 'error');
+}
+
+async function deleteEvent(id) {
+  if (!confirm('Delete this event? All bookings will be affected.')) return;
+  const res = await API.deleteEvent(id);
+  if (res.success) { toast('Event deleted'); await refreshAll(); }
+  else toast('Error deleting event', 'error');
+}
+
+// Member Modal
+function openMemberModal(id) {
+  editMemberId = id || null;
+  document.getElementById('member-modal-title').textContent = id ? 'Edit Member' : 'Add Member';
+  document.getElementById('save-member-btn').textContent = id ? 'Save Changes' : 'Add Member';
+  if (id) {
+    const m = allMembers.find(u=>u.id===id);
+    if (m) {
+      document.getElementById('m-name').value = m.name||'';
+      document.getElementById('m-email').value = m.email||'';
+      document.getElementById('m-phone').value = m.phone||'';
+      document.getElementById('m-sport').value = m.sport||'';
+      document.getElementById('m-tier').value = m.membership||'Guest';
+      document.getElementById('m-status').value = m.status||'active';
+    }
+  } else {
+    ['m-name','m-email','m-phone'].forEach(id=>document.getElementById(id).value='');
+  }
+  document.getElementById('member-modal').classList.add('show');
+}
+
+async function saveMember() {
+  const member = {
+    name: document.getElementById('m-name').value.trim(),
+    email: document.getElementById('m-email').value.trim(),
+    phone: document.getElementById('m-phone').value.trim(),
+    sport: document.getElementById('m-sport').value,
+    membership: document.getElementById('m-tier').value,
+    status: document.getElementById('m-status').value,
+  };
+  if (!member.name || !member.email) { toast('Name and email are required', 'error'); return; }
+  const btn = document.getElementById('save-member-btn');
+  btn.innerHTML = '<span class="spinner-sm"></span> Saving…';
+  btn.disabled = true;
+  const res = editMemberId ? await API.updateMember(editMemberId, member) : await API.createMember(member);
+  btn.innerHTML = editMemberId ? 'Save Changes' : 'Add Member';
+  btn.disabled = false;
+  if (res.success) { toast(res.message); closeModal('member-modal'); await refreshAll(); }
+  else toast(res.message || 'Error', 'error');
+}
+
+function viewMemberBookings(userId) {
+  const bks = allBookings.filter(b=>b.userId===userId);
+  const m = allMembers.find(u=>u.id===userId);
+  alert(`Bookings for ${m?.name||userId}:\n${bks.map(b=>`• ${b.eventName} (${b.date}) — ${b.status}`).join('\n')||'No bookings'}`);
+}
+
+// Announcements
+function openAnnouncementModal() { document.getElementById('announcement-modal').classList.add('show'); }
+async function saveAnnouncement() {
+  const ann = { title:document.getElementById('ann-title').value.trim(), message:document.getElementById('ann-msg').value.trim(), priority:document.getElementById('ann-priority').value, date:new Date().toISOString().split('T')[0], id:'A'+Date.now() };
+  if (!ann.title) { toast('Please enter a title','error'); return; }
+  allAnnouncements.unshift(ann); // demo: add locally
+  toast('Announcement published');
+  closeModal('announcement-modal');
+  renderAnnouncements();
+}
+function deleteAnnouncement(id) { if(!confirm('Delete this announcement?'))return; allAnnouncements=allAnnouncements.filter(a=>a.id!==id); renderAnnouncements(); toast('Announcement deleted'); }
+
+// Check-in
+function openManualCheckIn() {
+  const sel = document.getElementById('ci-member');
+  sel.innerHTML = allMembers.filter(m=>m.role==='member').map(m=>`<option value="${m.id}" data-name="${m.name}">${m.name} (${m.membership})</option>`).join('');
+  document.getElementById('checkin-modal').classList.add('show');
+}
+async function doManualCheckIn() {
+  const sel = document.getElementById('ci-member');
+  const userId = sel.value;
+  const userName = sel.options[sel.selectedIndex]?.dataset.name || 'Member';
+  const event = document.getElementById('ci-event').value.trim() || 'General Access';
+  const res = await API.checkIn(userId, userName, event);
+  if (res.success) { toast('Checked in: '+userName); closeModal('checkin-modal'); await refreshAll(); }
+  else toast('Check-in failed','error');
+}
+
+// Tabs
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => {
+    if (n.textContent.toLowerCase().includes(name.replace('dashboard','dashboard').replace('scheduler','scheduler'))) n.classList.add('active');
+  });
+  document.getElementById('page-title').textContent = name.charAt(0).toUpperCase()+name.slice(1);
+  if (name==='scheduler') renderCalendar();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function toggleSidebar() { document.getElementById('sidebar').classList.toggle('open'); }
+function showSettings() { toast('Settings panel — configure via js/config.js', 'warning'); }
+// Close modal on outside click
+document.addEventListener('click', e => { if(e.target.classList.contains('modal-overlay')) e.target.classList.remove('show'); });
+</script>
+</body>
+</html>
