@@ -6,6 +6,7 @@
 const CONFIG = {
   // 🔴 REQUIRED: Replace with your Apps Script Web App URL
   // Go to Apps Script → Deploy → New deployment → Web App → Copy URL
+  //https://script.google.com/macros/s/AKfycbzFp8u0iuy6nlh9DiCSR2Cz-RAM-Fy-stPh1xZsF21c6dIgjQ-hI-noCgoCmrGUeo1Nfw/exec
   APPS_SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzFp8u0iuy6nlh9DiCSR2Cz-RAM-Fy-stPh1xZsF21c6dIgjQ-hI-noCgoCmrGUeo1Nfw/exec',
 
   // Club settings
@@ -31,7 +32,10 @@ const CONFIG = {
   ],
 
   // Demo mode — uses local mock data when Apps Script is not configured
-  DEMO_MODE: true,
+  //DEMO_MODE: true,
+  if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID_HERE')) {
+  CONFIG.DEMO_MODE = true;  // ← will be false once URL is real
+}
 
   // Version
   VERSION: '1.0.0'
