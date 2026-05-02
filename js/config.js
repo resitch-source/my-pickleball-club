@@ -33,7 +33,7 @@ const CONFIG = {
 
   // Demo mode — uses local mock data when Apps Script is not configured
   //DEMO_MODE: true,
-  if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID_HERE')) {
+  if (CONFIG.APPS_SCRIPT_URL.includes('https://script.google.com/macros/s/AKfycbzFp8u0iuy6nlh9DiCSR2Cz-RAM-Fy-stPh1xZsF21c6dIgjQ-hI-noCgoCmrGUeo1Nfw/exec')) {
   CONFIG.DEMO_MODE = true;  // ← will be false once URL is real
 }
 
@@ -42,7 +42,7 @@ const CONFIG = {
 };
 
 // Auto-detect demo mode
-if (CONFIG.APPS_SCRIPT_URL.includes('YOUR_SCRIPT_ID_HERE')) {
+if (CONFIG.APPS_SCRIPT_URL.includes('https://script.google.com/macros/s/AKfycbzFp8u0iuy6nlh9DiCSR2Cz-RAM-Fy-stPh1xZsF21c6dIgjQ-hI-noCgoCmrGUeo1Nfw/exec')) {
   CONFIG.DEMO_MODE = true;
   console.warn('ClubHub: Running in demo mode. Set APPS_SCRIPT_URL in js/config.js');
 }
